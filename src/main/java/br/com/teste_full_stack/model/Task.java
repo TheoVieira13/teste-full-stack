@@ -1,23 +1,30 @@
 package br.com.teste_full_stack.model;
 
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Entity
+@Table(name = "tbl_gerenciador_tarefas")
 public class Task {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id_task")
 	private Long id;
 	
 	@NotBlank(message = "A descrição não pode ser vazia. ")
 	@Size(min = 3, max = 255, message = "A descrição deve ter entre 3 e 255 caracteres")
+	@Column(name = "descriacao_task")
 	private String descricao;
 	
+	@Column(name = "completo")
 	private boolean completo;
 	
 	public Task(Long id,

@@ -1,20 +1,27 @@
 package br.com.teste_full_stack.controller;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import br.com.teste_full_stack.model.Task;
 import br.com.teste_full_stack.service.TaskService;
 import jakarta.validation.Valid;
 
-@Controller
-@RequestMapping("/")
+@RestController
+@RequestMapping("/api/tasks")
 public class TaskController {
 
 	private final TaskService taskService;
@@ -24,52 +31,66 @@ public class TaskController {
 	}
 	
 	@GetMapping
-	public String listAllTasks(Model model) {
-		model.addAttribute("tasks", taskService.getAllTasks());
-		model.addAttribute("newTask", new Task());
-		return "index";
+	public List<Task> getAllTasks() {
+		return taskService.getAllTasks();
 	}
 	
 	@GetMapping("/pendentes")
-	public String listPendingTasks(Model model) {
-		model.addAttribute("tasks", taskService.getPendingTask());
-		model.addAttribute("newTask", new Task());
-		return "index";
+	public List<Task> getPendingTasks() {
+		return taskService.getPendingTask();
 	}
 	
 	@GetMapping("/completos")
-	public String listCompletedTasks(Model model) {
-		model.addAttribute("tasks", taskService.getCompletedTasks());
-		model.addAttribute("newTask", new Task());
-		return "index";
+	public List<Task> getCompletedTasks() {
+		return taskService.getCompletedTasks();
 	}
 	
-	@PostMapping("/tasks")
-	public String addTask(@Valid @ModelAttribute Task task, BindingResult bindingResult, Model model) {
+	@GetMapping("/{id}")
+	public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
+		Optional<Task> task = taskService.getTasksById(id);
+		return task.map(ResponseEntity::ok)
+				.orElseGet(() -> ResponseEntity.notFound().build());
+	}
+	
+	@PostMapping
+	public ResponseEntity<?> createTask(@Valid @RequestBody Task task, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
-			model.addAttribute("tasks", taskService.getAllTasks());
-			model.addAttribute("newTask", task);
-			return "index";
+			return new ResponseEntity<>(bindingResult.getAllErrors(), HttpStatus.BAD_REQUEST);
 		}
-		taskService.createTask(task);
-		return "redirect:/";
+		Task createdTask = taskService.createTask(task);
+		return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
 	}
 	
-	@PostMapping("/tasks/{id}/toggle")
-	public String toggleTaskCompletion(@PathVariable Long id) {
-		taskService.toggleTaskCompletion(id);
-		return "redirect:/";
+	@PutMapping("/{id}")
+	public ResponseEntity<Task> updateTask(@PathVariable Long id, @Valid @RequestBody Task taskDetails, BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+		try {
+			Task updatedTask = taskService.updateTask(id, taskDetails);
+			return ResponseEntity.ok(updatedTask);
+		} catch (RuntimeException e) {
+			return ResponseEntity.notFound().build();
+		}
 	}
 	
-	@PostMapping("/tasks/{id}/edit")
-	public String editTask(@PathVariable Long id, @ModelAttribute Task task) {
-		taskService.updateTask(id, task);
-		return "redirect:/";
+	@PatchMapping("/{id}/toggle")
+	public ResponseEntity<Task> toggleTaskCompletion(@PathVariable Long id) {
+		try {
+			Task toggledTask = taskService.toggleTaskCompletion(id);
+			return ResponseEntity.ok(toggledTask);
+		} catch (RuntimeException e) {
+			return ResponseEntity.notFound().build();
+		}
 	}
 	
-	@PostMapping("tasks/{id}/delete")
-	public String deleteTask(@PathVariable Long id) {
-		taskService.deleteTask(id);
-		return "redirect:/";
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+		try {
+			taskService.deleteTask(id);
+			return ResponseEntity.noContent().build();
+		} catch (Exception e) {
+			return ResponseEntity.notFound().build();
+		}
 	}
 }
