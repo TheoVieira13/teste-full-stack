@@ -50,11 +50,86 @@ Você pode utilizar as tecnologias que preferir, mas sugerimos:
 
 ## 📘 Como rodar o projeto
 
-Inclua aqui no seu repositório instruções claras para rodar o front-end e o back-end localmente, por exemplo:
+Siga os passos abaixo para configurar e executar o back-end:
 
-```bash
-# Instalar dependências
-npm install
+1.  **Clone o Repositório:**
+    ```bash
+    git clone [https://github.com/SEU_USUARIO/spring-todolist-backend.git](https://github.com/SEU_USUARIO/spring-todolist-backend.git)
+    ```
+    (Substitua `SEU_USUARIO` pelo seu nome de usuário do GitHub)
 
-# Rodar aplicação
-npm run dev
+2.  **Navegue até a Pasta do Projeto:**
+    ```bash
+    cd spring-todolist-backend
+    ```
+
+3.  **Configuração do Banco de Dados (MySQL):**
+    Abra o arquivo `src/main/resources/application.properties` (ou `application.yml`) e configure as credenciais do seu banco de dados MySQL:
+
+    ```properties
+    # src/main/resources/application.properties
+
+    spring.datasource.url=jdbc:mysql://localhost:3306/nome_do_seu_banco
+    spring.datasource.username=seu_usuario_mysql
+    spring.datasource.password=sua_senha_mysql
+    spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+    # Configuração JPA/Hibernate
+    spring.jpa.hibernate.ddl-auto=update # Use 'update' para criar/atualizar tabelas automaticamente
+    spring.jpa.show-sql=true # Para ver as queries SQL no console (útil para debug)
+    spring.jpa.properties.hibernate.format_sql=true # Formata o SQL para melhor leitura
+    ```
+    * **`nome_do_seu_banco`**: Substitua pelo nome do banco de dados que você criou para o projeto no MySQL.
+    * **`seu_usuario_mysql`**: Substitua pelo nome de usuário do seu MySQL (geralmente `root` em instalações locais).
+    * **`sua_senha_mysql`**: Substitua pela senha do seu usuário MySQL.
+    * **`spring.jpa.hibernate.ddl-auto`**: `update` é bom para desenvolvimento, pois tenta atualizar o schema. Para produção, `none` ou `validate` são mais seguros.
+
+    **Importante:** Certifique-se de que você tem a dependência do MySQL Connector/J no seu `pom.xml` (se for Maven) ou `build.gradle` (se for Gradle).
+
+    * **Para Maven (`pom.xml`):**
+        ```xml
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version> </dependency>
+        ```
+        (adicione dentro da seção `<dependencies>`)
+
+    * **Para Gradle (`build.gradle`):**
+        ```gradle
+        dependencies {
+            implementation 'mysql:mysql-connector-java:8.0.33' // Use a versão compatível
+        }
+        ```
+        (adicione dentro da seção `dependencies { ... }`)
+
+
+4.  **Construa o Projeto:**
+    * **Com Maven:**
+        ```bash
+        mvn clean install
+        ```
+    * **Com Gradle:**
+        ```bash
+        gradle build
+        ```
+
+5.  **Execute a Aplicação:**
+    * **Com Maven:**
+        ```bash
+        mvn spring-boot:run
+        ```
+    * **Com Gradle:**
+        ```bash
+        gradle bootRun
+        ```
+    A aplicação será iniciada e estará disponível em `http://localhost:8080`.
+
+## Endpoints da API
+
+A API RESTful oferece os seguintes endpoints para gerenciamento de tarefas:
+
+* **`GET /api/tasks`**: Retorna todas as tarefas.
+* **`GET /api/tasks/pending`**: Retorna apenas as tarefas pendentes.
+* **`GET /api/tasks/completed`**: Retorna apenas as tarefas concluídas.
+* **`GET /api/tasks/{id}`**: Retorna uma tarefa específica por ID
